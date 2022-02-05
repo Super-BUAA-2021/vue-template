@@ -20,7 +20,38 @@ export default {
   },
   methods: {
     click_login() {
-      window.alert(this.username + this.password);
+      this.$axios({
+        method: 'post',           /* 指明请求方式，可以是 get 或 post */
+        url: '/user/login',       /* 指明后端 api 路径，由于在 main.js 已指定根路径，因此在此处只需写相对路由 */
+        data: {                   /* 需要向后端传输的数据，JSON 格式 */
+          username: this.username,
+          password: this.password
+        }
+      })
+      .then(res => {              /* res 是 response 的缩写 */
+        switch (res.data.status_code) {
+          case 200:
+            window.alert("登录成功！");
+            /* 将后端返回的 user 信息使用 vuex 存储起来 */
+            this.$store.dispatch('saveUserInfo', {
+              user: {
+                'username': res.data.username,
+                'token': res.data.token,
+                'userId': res.data.user_id
+              }
+            });
+            break;
+          case 401:
+            window.alert("用户名不存在！");
+            break;
+          case 402:
+            window.alert("密码错误！");
+            break;
+        }
+      })
+      .catch(err => {
+        console.log(err);         /* 若出现异常则在终端输出相关信息 */
+      })
     }
   }
 }
